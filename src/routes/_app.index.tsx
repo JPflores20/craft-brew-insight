@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { FlaskConical, AlertTriangle, Droplets, Wrench } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { KpiCard } from "@/components/kpi-card";
-import { StatusBadge } from "@/components/status-badge";
+import { KpiCard } from "@/components/kpi_card";
+import { StatusBadge } from "@/components/status_badge";
 import { kpis, alertasRecientes, produccionSemanal } from "@/data/dashboard";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
