@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppPurgasRouteImport } from './routes/_app.purgas'
 import { Route as AppExtractoRouteImport } from './routes/_app.extracto'
 import { Route as AppCurvasRouteImport } from './routes/_app.curvas'
 import { Route as AppAgendaRouteImport } from './routes/_app.agenda'
@@ -22,6 +23,11 @@ const AppRoute = AppRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPurgasRoute = AppPurgasRouteImport.update({
+  id: '/purgas',
+  path: '/purgas',
   getParentRoute: () => AppRoute,
 } as any)
 const AppExtractoRoute = AppExtractoRouteImport.update({
@@ -45,11 +51,13 @@ export interface FileRoutesByFullPath {
   '/agenda': typeof AppAgendaRoute
   '/curvas': typeof AppCurvasRoute
   '/extracto': typeof AppExtractoRoute
+  '/purgas': typeof AppPurgasRoute
 }
 export interface FileRoutesByTo {
   '/agenda': typeof AppAgendaRoute
   '/curvas': typeof AppCurvasRoute
   '/extracto': typeof AppExtractoRoute
+  '/purgas': typeof AppPurgasRoute
   '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -58,19 +66,21 @@ export interface FileRoutesById {
   '/_app/agenda': typeof AppAgendaRoute
   '/_app/curvas': typeof AppCurvasRoute
   '/_app/extracto': typeof AppExtractoRoute
+  '/_app/purgas': typeof AppPurgasRoute
   '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/agenda' | '/curvas' | '/extracto'
+  fullPaths: '/' | '/agenda' | '/curvas' | '/extracto' | '/purgas'
   fileRoutesByTo: FileRoutesByTo
-  to: '/agenda' | '/curvas' | '/extracto' | '/'
+  to: '/agenda' | '/curvas' | '/extracto' | '/purgas' | '/'
   id:
     | '__root__'
     | '/_app'
     | '/_app/agenda'
     | '/_app/curvas'
     | '/_app/extracto'
+    | '/_app/purgas'
     | '/_app/'
   fileRoutesById: FileRoutesById
 }
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/purgas': {
+      id: '/_app/purgas'
+      path: '/purgas'
+      fullPath: '/purgas'
+      preLoaderRoute: typeof AppPurgasRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/extracto': {
@@ -122,6 +139,7 @@ interface AppRouteChildren {
   AppAgendaRoute: typeof AppAgendaRoute
   AppCurvasRoute: typeof AppCurvasRoute
   AppExtractoRoute: typeof AppExtractoRoute
+  AppPurgasRoute: typeof AppPurgasRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -129,6 +147,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAgendaRoute: AppAgendaRoute,
   AppCurvasRoute: AppCurvasRoute,
   AppExtractoRoute: AppExtractoRoute,
+  AppPurgasRoute: AppPurgasRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
