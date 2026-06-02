@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppExtractoRouteImport } from './routes/_app.extracto'
 import { Route as AppAgendaRouteImport } from './routes/_app.agenda'
 
 const AppRoute = AppRouteImport.update({
@@ -22,6 +23,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppExtractoRoute = AppExtractoRouteImport.update({
+  id: '/extracto',
+  path: '/extracto',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAgendaRoute = AppAgendaRouteImport.update({
   id: '/agenda',
   path: '/agenda',
@@ -31,23 +37,26 @@ const AppAgendaRoute = AppAgendaRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/agenda': typeof AppAgendaRoute
+  '/extracto': typeof AppExtractoRoute
 }
 export interface FileRoutesByTo {
   '/agenda': typeof AppAgendaRoute
+  '/extracto': typeof AppExtractoRoute
   '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/_app/agenda': typeof AppAgendaRoute
+  '/_app/extracto': typeof AppExtractoRoute
   '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/agenda'
+  fullPaths: '/' | '/agenda' | '/extracto'
   fileRoutesByTo: FileRoutesByTo
-  to: '/agenda' | '/'
-  id: '__root__' | '/_app' | '/_app/agenda' | '/_app/'
+  to: '/agenda' | '/extracto' | '/'
+  id: '__root__' | '/_app' | '/_app/agenda' | '/_app/extracto' | '/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -70,6 +79,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/extracto': {
+      id: '/_app/extracto'
+      path: '/extracto'
+      fullPath: '/extracto'
+      preLoaderRoute: typeof AppExtractoRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/agenda': {
       id: '/_app/agenda'
       path: '/agenda'
@@ -82,11 +98,13 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAgendaRoute: typeof AppAgendaRoute
+  AppExtractoRoute: typeof AppExtractoRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAgendaRoute: AppAgendaRoute,
+  AppExtractoRoute: AppExtractoRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
