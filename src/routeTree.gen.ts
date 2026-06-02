@@ -9,61 +9,153 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppPurgasRouteImport } from './routes/_app.purgas'
+import { Route as AppExtractoRouteImport } from './routes/_app.extracto'
+import { Route as AppCurvasRouteImport } from './routes/_app.curvas'
+import { Route as AppAgendaRouteImport } from './routes/_app.agenda'
 
-const IndexRoute = IndexRouteImport.update({
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPurgasRoute = AppPurgasRouteImport.update({
+  id: '/purgas',
+  path: '/purgas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppExtractoRoute = AppExtractoRouteImport.update({
+  id: '/extracto',
+  path: '/extracto',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCurvasRoute = AppCurvasRouteImport.update({
+  id: '/curvas',
+  path: '/curvas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAgendaRoute = AppAgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AppIndexRoute
+  '/agenda': typeof AppAgendaRoute
+  '/curvas': typeof AppCurvasRoute
+  '/extracto': typeof AppExtractoRoute
+  '/purgas': typeof AppPurgasRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/agenda': typeof AppAgendaRoute
+  '/curvas': typeof AppCurvasRoute
+  '/extracto': typeof AppExtractoRoute
+  '/purgas': typeof AppPurgasRoute
+  '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/_app/agenda': typeof AppAgendaRoute
+  '/_app/curvas': typeof AppCurvasRoute
+  '/_app/extracto': typeof AppExtractoRoute
+  '/_app/purgas': typeof AppPurgasRoute
+  '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/agenda' | '/curvas' | '/extracto' | '/purgas'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/agenda' | '/curvas' | '/extracto' | '/purgas' | '/'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/_app/agenda'
+    | '/_app/curvas'
+    | '/_app/extracto'
+    | '/_app/purgas'
+    | '/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/': {
+      id: '/_app/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/purgas': {
+      id: '/_app/purgas'
+      path: '/purgas'
+      fullPath: '/purgas'
+      preLoaderRoute: typeof AppPurgasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/extracto': {
+      id: '/_app/extracto'
+      path: '/extracto'
+      fullPath: '/extracto'
+      preLoaderRoute: typeof AppExtractoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/curvas': {
+      id: '/_app/curvas'
+      path: '/curvas'
+      fullPath: '/curvas'
+      preLoaderRoute: typeof AppCurvasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/agenda': {
+      id: '/_app/agenda'
+      path: '/agenda'
+      fullPath: '/agenda'
+      preLoaderRoute: typeof AppAgendaRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
 
+interface AppRouteChildren {
+  AppAgendaRoute: typeof AppAgendaRoute
+  AppCurvasRoute: typeof AppCurvasRoute
+  AppExtractoRoute: typeof AppExtractoRoute
+  AppPurgasRoute: typeof AppPurgasRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAgendaRoute: AppAgendaRoute,
+  AppCurvasRoute: AppCurvasRoute,
+  AppExtractoRoute: AppExtractoRoute,
+  AppPurgasRoute: AppPurgasRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
