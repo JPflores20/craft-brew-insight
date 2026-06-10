@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_app/agenda")({
 });
 
 function AgendaPage() {
-  const { eventosAgenda, extractos, purgas, addEventoAgenda } = useOperacionesStore();
+  const { eventosAgenda, extractos, addEventoAgenda } = useOperacionesStore();
   const [cursor, set_cursor] = useState(new Date());
   const [open, set_open] = useState(false);
  
@@ -32,24 +32,23 @@ function AgendaPage() {
   }, [cursor]);
 
   const eventosFiltrados = useMemo(() => {
-    // Generar eventos de purgas al vuelo
-    const purgasEventos = purgas.flatMap((r) => 
-      r.purgas.map((p, i) => {
-        // Solo mostrar la Purga 8 (índice 7) en la agenda
-        if (i !== 7) return null;
-        if (!p.fechaHora) return null;
-        return {
-          id: `purga-${r.id}-${i}`,
-          titulo: `Purga ${i + 1} - Tanque ${r.tanque}`,
-          inicio: p.fechaHora,
-          fin: p.fechaHora,
-          tipo: "Purga" as const,
-          descripcion: `Marca: ${r.marca} | Empleado: ${p.realiza || 'Pendiente'} | Tiempo: ${p.tiempo ? p.tiempo + ' min' : 'Pendiente'}`,
-          turno: obtenerTurnoPorHora(p.fechaHora),
-          completado: !!(p.realiza && p.tiempo)
-        };
-      }).filter(Boolean)
-    );
+    // Derivar eventos de purga desde extractos (misma lógica que la pantalla de Purgas)
+    const purgasEventos = extractos.flatMap((e) => {
+      const fechaBase = e.fechaLlenado ? new Date(e.fechaLlenado) : null;
+      if (!fechaBase) return [];
+      // Solo la Purga 8 (8 * 8 = 64 horas después del llenado)
+      const fechaPurga8 = new Date(fechaBase.getTime() + 8 * 8 * 60 * 60 * 1000);
+      return [{
+        id: `purga-${e.id}-8`,
+        titulo: `Purga 8 - Tanque ${e.tanque}`,
+        inicio: fechaPurga8.toISOString(),
+        fin: fechaPurga8.toISOString(),
+        tipo: "Purga" as const,
+        descripcion: `Marca: ${e.marca}`,
+        turno: obtenerTurnoPorHora(fechaPurga8.toISOString()),
+        completado: false,
+      }];
+    });
 
     // Calcular "completado" para eventosAgenda (Chequeo Plato)
     const eventosMapeados = eventosAgenda.map((evento: any) => {
@@ -75,7 +74,7 @@ function AgendaPage() {
 
     if (turnoSeleccionado === "TODOS") return todosLosEventos;
     return todosLosEventos.filter((evento: any) => evento.turno === turnoSeleccionado);
-  }, [eventosAgenda, purgas, turnoSeleccionado]);
+  }, [eventosAgenda, extractos, turnoSeleccionado]);
 
 
   function submit(data: AgendaFormValues) {
