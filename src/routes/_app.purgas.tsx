@@ -9,6 +9,7 @@ import { PurgasTable } from "@/components/purgas_table";
 import { useOperacionesStore } from "@/store/useOperacionesStore";
 import { BRANDS } from "@/data/brands";
 import { obtenerTurnoPorHora } from "@/data/turno";
+import { parseMexicanDate } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/purgas")({
   head: () => ({
@@ -20,35 +21,20 @@ export const Route = createFileRoute("/_app/purgas")({
   component: PurgasPage,
 });
 
+import { useEffect } from "react";
+
 function PurgasPage() {
-  const { extractos } = useOperacionesStore();
+  const { purgas, fetchData, periodoActual, periodosDisponibles } = useOperacionesStore();
   const [query, set_query] = useState("");
   const [marca, set_marca] = useState<string>("all");
   const [turno, set_turno] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
-  const filtered = useMemo(() => {
-    const purgas = extractos.map((e) => {
-      const fechaBase = e.fechaLlenado ? new Date(e.fechaLlenado) : null;
-      const purgas8 = Array.from({ length: 8 }, (_, i) => ({
-        fechaHora: fechaBase
-          ? new Date(fechaBase.getTime() + (i + 1) * 8 * 60 * 60 * 1000).toISOString()
-          : null,
-        tiempo: null,
-        realiza: null,
-      }));
-      return {
-        id: e.id,
-        tanque: e.tanque,
-        fecha: e.fechaLlenado,
-        marca: e.marca,
-        fechaLlenado: e.fechaLlenado,
-        horas: "0",
-        historicas: "0",
-        purgas: purgas8,
-      };
-    });
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
+  const filtered = useMemo(() => {
     const results = purgas.filter((r) => {
       const match_q = !query || r.tanque.toLowerCase().includes(query.toLowerCase());
       const match_m = marca === "all" || r.marca === marca;
@@ -58,11 +44,13 @@ function PurgasPage() {
     });
 
     return results.sort((a, b) => {
-      const dateA = new Date(a.fechaLlenado).getTime();
-      const dateB = new Date(b.fechaLlenado).getTime();
+      const parsedA = parseMexicanDate(a.fechaLlenado);
+      const parsedB = parseMexicanDate(b.fechaLlenado);
+      const dateA = parsedA ? parsedA.getTime() : 0;
+      const dateB = parsedB ? parsedB.getTime() : 0;
       return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
     });
-  }, [extractos, query, marca, turno, sortOrder]);
+  }, [purgas, query, marca, turno, sortOrder]);
 
   return (
     <div className="space-y-6">
@@ -88,6 +76,16 @@ function PurgasPage() {
                 className="pl-9"
               />
             </div>
+            
+            <Select value={periodoActual} onValueChange={(v) => { fetchData(v); }}>
+              <SelectTrigger className="w-40"><SelectValue placeholder="Periodo" /></SelectTrigger>
+              <SelectContent>
+                {periodosDisponibles.map((p) => (
+                  <SelectItem key={p} value={p}>{p}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <Select value={marca} onValueChange={set_marca}>
               <SelectTrigger className="w-48"><SelectValue placeholder="Marca" /></SelectTrigger>
               <SelectContent>

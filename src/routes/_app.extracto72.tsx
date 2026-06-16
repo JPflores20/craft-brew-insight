@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_app/extracto72")({
 const page_size = 50;
 
 function Checar72Page() {
-  const { extractos, fetchData } = useOperacionesStore();
+  const { extractos, fetchData, periodoActual, periodosDisponibles } = useOperacionesStore();
   const [query, set_query] = useState("");
   const [marca, set_marca] = useState<string>("all");
   const [turno, set_turno] = useState<string>("all");
@@ -83,6 +83,16 @@ function Checar72Page() {
                 className="pl-9"
               />
             </div>
+            
+            <Select value={periodoActual} onValueChange={(v) => { fetchData(v); set_page(0); }}>
+              <SelectTrigger className="w-40"><SelectValue placeholder="Periodo" /></SelectTrigger>
+              <SelectContent>
+                {periodosDisponibles.map((p) => (
+                  <SelectItem key={p} value={p}>{p}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <Select value={marca} onValueChange={(v) => { set_marca(v); set_page(0); }}>
               <SelectTrigger className="w-48"><SelectValue placeholder="Marca" /></SelectTrigger>
               <SelectContent>

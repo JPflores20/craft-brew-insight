@@ -1,7 +1,11 @@
+import { parseMexicanDate } from "@/lib/utils";
+
 export type TipoTurno = 'Turno 1' | 'Turno 2' | 'Turno 3';
 
-export function obtenerTurnoPorHora(fechaInput: Date | string): TipoTurno {
-  const fecha = new Date(fechaInput);
+export function obtenerTurnoPorHora(fechaInput: Date | string): TipoTurno | null {
+  const fecha = parseMexicanDate(fechaInput);
+  if (!fecha) return null;
+
   const hora = fecha.getHours();
   const minutos = fecha.getMinutes();
 

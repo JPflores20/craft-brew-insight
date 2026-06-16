@@ -10,6 +10,7 @@ import { UploadExtractos } from "@/components/subir_archivos_extracto";
 import { BRANDS } from "@/data/brands";
 import { useOperacionesStore } from "@/store/useOperacionesStore";
 import { obtenerTurnoPorHora } from "@/data/turno";
+import { parseMexicanDate } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/extracto")({
   head: () => ({
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/_app/extracto")({
 const page_size = 50;
 
 function ExtractoPage() {
-  const { extractos, fetchData } = useOperacionesStore();
+  const { extractos, fetchData, periodoActual, periodosDisponibles } = useOperacionesStore();
   const [query, set_query] = useState("");
   const [marca, set_marca] = useState<string>("all");
   const [turno, set_turno] = useState<string>("all");
@@ -45,8 +46,10 @@ function ExtractoPage() {
     });
 
     return results.sort((a, b) => {
-      const dateA = new Date(a.fechaLlenado).getTime();
-      const dateB = new Date(b.fechaLlenado).getTime();
+      const parsedA = parseMexicanDate(a.fechaLlenado);
+      const parsedB = parseMexicanDate(b.fechaLlenado);
+      const dateA = parsedA ? parsedA.getTime() : 0;
+      const dateB = parsedB ? parsedB.getTime() : 0;
       return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
     });
   }, [extractos, query, marca, turno, sortOrder]);
@@ -81,6 +84,16 @@ function ExtractoPage() {
                 className="pl-9"
               />
             </div>
+            
+            <Select value={periodoActual} onValueChange={(v) => { fetchData(v); set_page(0); }}>
+              <SelectTrigger className="w-40"><SelectValue placeholder="Periodo" /></SelectTrigger>
+              <SelectContent>
+                {periodosDisponibles.map((p) => (
+                  <SelectItem key={p} value={p}>{p}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <Select value={marca} onValueChange={(v) => { set_marca(v); set_page(0); }}>
               <SelectTrigger className="w-48"><SelectValue placeholder="Marca" /></SelectTrigger>
               <SelectContent>

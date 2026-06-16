@@ -26,17 +26,6 @@ export async function guardarExtractosEnFirestore(
 
   try {
     const periodoDocRef = doc(firestore, COLECCION_EXTRACTOS, periodo);
-    await setDoc(
-      periodoDocRef,
-      {
-        periodo,
-        totalRegistros: total,
-        fechaSubida: Timestamp.now(),
-        actualizadoEn: Timestamp.now(),
-      },
-      { merge: true }
-    );
-
     const registrosRef = collection(periodoDocRef, "registros");
 
     onProgress?.({
@@ -44,37 +33,27 @@ export async function guardarExtractosEnFirestore(
       escritos: 0,
       porcentaje: 0,
       fase: "limpiando",
-      mensaje: "Eliminando registros anteriores del periodo...",
+      mensaje: "Verificando registros existentes para evitar duplicados...",
     });
 
     const snapshotAnterior = await getDocs(registrosRef);
-    const batchesEliminar: ReturnType<typeof writeBatch>[] = [];
-    let batchActual = writeBatch(firestore);
-    let contadorEliminar = 0;
-
-    snapshotAnterior.forEach((docSnap) => {
-      batchActual.delete(docSnap.ref);
-      contadorEliminar++;
-      if (contadorEliminar % BATCH_SIZE === 0) {
-        batchesEliminar.push(batchActual);
-        batchActual = writeBatch(firestore);
-      }
-    });
-
-    if (contadorEliminar % BATCH_SIZE !== 0) {
-      batchesEliminar.push(batchActual);
-    }
-
-    for (const b of batchesEliminar) {
-      await b.commit();
-    }
+    const idsExistentes = new Set(snapshotAnterior.docs.map((d) => d.id));
 
     let escritos = 0;
+    let omitidos = 0;
     const batchesEscribir: ReturnType<typeof writeBatch>[] = [];
     let batchEscritura = writeBatch(firestore);
+    let registrosEnBatch = 0;
 
     for (let i = 0; i < total; i++) {
       const fila = filas[i];
+      
+      // Omitir si ya existe
+      if (idsExistentes.has(fila.id)) {
+        omitidos++;
+        continue;
+      }
+
       const docRef = doc(registrosRef, fila.id);
 
       batchEscritura.set(docRef, {
@@ -83,39 +62,59 @@ export async function guardarExtractosEnFirestore(
       });
 
       escritos++;
+      registrosEnBatch++;
 
-      if (escritos % BATCH_SIZE === 0) {
+      if (registrosEnBatch === BATCH_SIZE) {
         batchesEscribir.push(batchEscritura);
         batchEscritura = writeBatch(firestore);
+        registrosEnBatch = 0;
+      }
 
-        await batchesEscribir[batchesEscribir.length - 1].commit();
-
+      if (escritos % 50 === 0) {
         onProgress?.({
           total,
           escritos,
-          porcentaje: Math.round((escritos / total) * 100),
+          porcentaje: Math.round(((i + 1) / total) * 100),
           fase: "subiendo",
-          mensaje: `Subiendo ${escritos} de ${total} registros...`,
+          mensaje: `Guardando: ${escritos} nuevos, ${omitidos} omitidos (ya existían)...`,
         });
       }
     }
 
-    if (escritos % BATCH_SIZE !== 0) {
-      await batchEscritura.commit();
+    if (registrosEnBatch > 0) {
+      batchesEscribir.push(batchEscritura);
     }
+
+    for (const b of batchesEscribir) {
+      await b.commit();
+    }
+
+    const snapshotActualizado = await getDocs(registrosRef);
+    const totalRegistrosActual = snapshotActualizado.size;
+
+    await setDoc(
+      periodoDocRef,
+      {
+        periodo,
+        totalRegistros: totalRegistrosActual,
+        fechaSubida: Timestamp.now(),
+        actualizadoEn: Timestamp.now(),
+      },
+      { merge: true }
+    );
 
     onProgress?.({
       total,
-      escritos: total,
+      escritos,
       porcentaje: 100,
       fase: "completado",
-      mensaje: `¡Listo! ${total} registros guardados en periodo ${periodo}.`,
+      mensaje: `¡Listo! Se agregaron ${escritos} registros nuevos. Se omitieron ${omitidos} duplicados.`,
     });
 
     return {
       exito: true,
-      total,
-      mensaje: `Se guardaron ${total} registros en el periodo ${periodo}.`,
+      total: escritos,
+      mensaje: `Se agregaron ${escritos} nuevos registros y se omitieron ${omitidos} duplicados en el periodo ${periodo}.`,
     };
   } catch (error: any) {
     onProgress?.({

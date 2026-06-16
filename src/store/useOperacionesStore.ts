@@ -6,13 +6,14 @@ import { obtenerTurnoPorHora } from "@/data/turno";
 
 interface OperacionesState {
   periodoActual: string;
+  periodosDisponibles: string[];
   extractos: ExtractoRow[];
   purgas: PurgaRow[];
   eventosAgenda: AgendaEvent[];
   isLoading: boolean;
   error: string | null;
 
-  fetchData: () => Promise<void>;
+  fetchData: (periodoSeleccionado?: string) => Promise<void>;
   addPurga: (purga: PurgaRow) => void;
   updateExtracto: (id: string, data: Partial<ExtractoRow>) => void;
   toggleEstado72h: (id: string) => Promise<void>;
@@ -25,13 +26,14 @@ interface OperacionesState {
 
 export const useOperacionesStore = create<OperacionesState>((set) => ({
   periodoActual: "2026-06",
+  periodosDisponibles: [],
   extractos: [],
   purgas: [],
   eventosAgenda: [],
   isLoading: false,
   error: null,
 
-  fetchData: async () => {
+  fetchData: async (periodoSeleccionado?: string) => {
     set({ isLoading: true, error: null });
     try {
       // Importamos las funciones dinámicamente para evitar dependencias circulares si las hubiera
@@ -39,14 +41,17 @@ export const useOperacionesStore = create<OperacionesState>((set) => ({
       const { obtenerEventosAgenda } = await import("@/lib/api/agendaFirebaseService");
       const { obtenerPurgasPorPeriodo } = await import("@/lib/api/purgasFirebaseService");
       
-      const periodosDisponibles = await listarPeriodosExtractos().catch(() => []);
+      const periodosResumen = await listarPeriodosExtractos().catch(() => []);
+      const periodos = periodosResumen.map((p) => p.periodo);
       
-      // Por defecto agarramos el periodo más reciente (índice 0, ya que Firebase nos los devuelve ordenados descendentes)
-      const periodoMasReciente = periodosDisponibles.length > 0 ? periodosDisponibles[0].periodo : "2026-06";
+      // Si no se especifica periodo, cargamos el periodoActual (si es válido), o el más reciente, o fallback a "2026-06"
+      const targetPeriodo = periodoSeleccionado || 
+                            (periodos.includes(useOperacionesStore.getState().periodoActual) ? useOperacionesStore.getState().periodoActual : null) ||
+                            (periodos.length > 0 ? periodos[0] : "2026-06");
       
       const [extractosFb, purgasFb, eventosAgendaFb] = await Promise.all([
-        obtenerExtractosPorPeriodo(periodoMasReciente).catch(() => []),
-        obtenerPurgasPorPeriodo(periodoMasReciente).catch(() => []),
+        obtenerExtractosPorPeriodo(targetPeriodo).catch(() => []),
+        obtenerPurgasPorPeriodo(targetPeriodo).catch(() => []),
         obtenerEventosAgenda().catch(() => []),
       ]);
   
@@ -54,7 +59,14 @@ export const useOperacionesStore = create<OperacionesState>((set) => ({
       const purgas = purgasFb;
       const eventosAgenda = eventosAgendaFb;
 
-      set({ extractos, purgas, eventosAgenda, periodoActual: periodoMasReciente, isLoading: false });
+      set({ 
+        extractos, 
+        purgas, 
+        eventosAgenda, 
+        periodoActual: targetPeriodo, 
+        periodosDisponibles: periodos,
+        isLoading: false 
+      });
     } catch (error) {
       set({ error: "Error al cargar datos", isLoading: false });
     }
@@ -79,6 +91,7 @@ export const useOperacionesStore = create<OperacionesState>((set) => ({
 
   updatePurgaField: async (id, numeroPurga, campo, valor) => {
     // 1. Optimistic update
+    let updatedRow: PurgaRow | undefined;
     set((state) => ({
       purgas: state.purgas.map((r) => {
         if (r.id !== id) return r;
@@ -89,9 +102,21 @@ export const useOperacionesStore = create<OperacionesState>((set) => ({
         } else {
           newPurgas[numeroPurga - 1].realiza = String(valor);
         }
-        return { ...r, purgas: newPurgas };
+        updatedRow = { ...r, purgas: newPurgas };
+        return updatedRow;
       })
     }));
+
+    // 2. Persist to Firebase
+    if (updatedRow) {
+      try {
+        const { actualizarPurgaEnFirestore } = await import("@/lib/api/purgasFirebaseService");
+        const periodo = useOperacionesStore.getState().periodoActual;
+        await actualizarPurgaEnFirestore(periodo, id, { purgas: updatedRow.purgas });
+      } catch (error) {
+        console.error("Error al actualizar purga:", error);
+      }
+    }
   },
 
   cargarPurgasDesdeArchivo: (filas) => set((state) => {
@@ -122,7 +147,7 @@ export const useOperacionesStore = create<OperacionesState>((set) => ({
       });
 
       return {
-        id: fila.id || `pr-${Date.now()}-${index}`,
+        id: `pr-${tanque}-${new Date(fila.fechaLlenado || fila.fecha || "").getTime() || Date.now()}`,
         tanque,
         fecha: fila.fecha || fila.fechaLlenado || "",
         marca,

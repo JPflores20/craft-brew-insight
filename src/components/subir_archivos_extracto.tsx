@@ -187,7 +187,7 @@ function limpiarYMapear(filasJson: any[]): ResultadoLimpieza {
     };
 
     filasLimpias.push({
-      id: `ex-${Date.now()}-${idx}`,
+      id: `ext-${String(fermentadorVal).trim()}-${fechaParsed.getTime()}`,
       tanque: String(fermentadorVal).trim(),
       marca,
       fechaLlenado,

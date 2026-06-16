@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as ApiIngestaRouteImport } from './routes/api.ingesta'
 import { Route as AppPurgasRouteImport } from './routes/_app.purgas'
 import { Route as AppExtracto72RouteImport } from './routes/_app.extracto72'
 import { Route as AppExtractoRouteImport } from './routes/_app.extracto'
@@ -25,6 +26,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const ApiIngestaRoute = ApiIngestaRouteImport.update({
+  id: '/api/ingesta',
+  path: '/api/ingesta',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppPurgasRoute = AppPurgasRouteImport.update({
   id: '/purgas',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/extracto': typeof AppExtractoRoute
   '/extracto72': typeof AppExtracto72Route
   '/purgas': typeof AppPurgasRoute
+  '/api/ingesta': typeof ApiIngestaRoute
 }
 export interface FileRoutesByTo {
   '/agenda': typeof AppAgendaRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/extracto': typeof AppExtractoRoute
   '/extracto72': typeof AppExtracto72Route
   '/purgas': typeof AppPurgasRoute
+  '/api/ingesta': typeof ApiIngestaRoute
   '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/_app/extracto': typeof AppExtractoRoute
   '/_app/extracto72': typeof AppExtracto72Route
   '/_app/purgas': typeof AppPurgasRoute
+  '/api/ingesta': typeof ApiIngestaRoute
   '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
@@ -87,8 +96,16 @@ export interface FileRouteTypes {
     | '/extracto'
     | '/extracto72'
     | '/purgas'
+    | '/api/ingesta'
   fileRoutesByTo: FileRoutesByTo
-  to: '/agenda' | '/curvas' | '/extracto' | '/extracto72' | '/purgas' | '/'
+  to:
+    | '/agenda'
+    | '/curvas'
+    | '/extracto'
+    | '/extracto72'
+    | '/purgas'
+    | '/api/ingesta'
+    | '/'
   id:
     | '__root__'
     | '/_app'
@@ -97,11 +114,13 @@ export interface FileRouteTypes {
     | '/_app/extracto'
     | '/_app/extracto72'
     | '/_app/purgas'
+    | '/api/ingesta'
     | '/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
+  ApiIngestaRoute: typeof ApiIngestaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -119,6 +138,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/api/ingesta': {
+      id: '/api/ingesta'
+      path: '/api/ingesta'
+      fullPath: '/api/ingesta'
+      preLoaderRoute: typeof ApiIngestaRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_app/purgas': {
       id: '/_app/purgas'
@@ -180,6 +206,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
+  ApiIngestaRoute: ApiIngestaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
