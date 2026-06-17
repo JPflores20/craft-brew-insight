@@ -174,7 +174,7 @@ export const useOperacionesStore = create<OperacionesState>((set) => ({
 
     const extractosMapeados: ExtractoRow[] = filas.map((fila: any, index: number) => {
       const tanque = fila.tanque || String(fila.FERMENTADOR || "");
-      const marca = fila.marca || String(fila.MARCA || "Modelo Especial");
+      const marca = fila.marca || String(fila.MARCA || "");
       
       const fechaVal = fila.h72;
       if (fechaVal) {
@@ -239,6 +239,30 @@ export const useOperacionesStore = create<OperacionesState>((set) => ({
         extractos: s.extractos.map(e => e.id === id ? { ...e, estado72h: target.estado72h } : e)
       }));
       console.error("Error al actualizar estado 72h:", error);
+    }
+  },
+  toggleEstado24h: async (id: string) => {
+    const state = useOperacionesStore.getState();
+    const target = state.extractos.find(e => e.id === id);
+    if (!target) return;
+
+    const nuevoEstado = target.estado24h === "Completado" ? "Pendiente" : "Completado";
+    const periodo = state.periodoActual;
+
+    // Optimistic UI update
+    set((s) => ({
+      extractos: s.extractos.map(e => e.id === id ? { ...e, estado24h: nuevoEstado } : e)
+    }));
+
+    try {
+      const { actualizarExtractoEnFirestore } = await import("@/lib/api/extractosFirebaseService");
+      await actualizarExtractoEnFirestore(periodo, id, { estado24h: nuevoEstado });
+    } catch (error) {
+      // Revertir en caso de error
+      set((s) => ({
+        extractos: s.extractos.map(e => e.id === id ? { ...e, estado24h: target.estado24h } : e)
+      }));
+      console.error("Error al actualizar estado 24h:", error);
     }
   },
 

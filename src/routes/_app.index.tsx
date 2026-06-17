@@ -72,6 +72,9 @@ function Dashboard() {
   const fermentando   = extractosPeriodoActivo.length;
   const completados72 = extractosPeriodoActivo.filter(e => e.h72 && e.estado72h === "Completado").length;
   const pendientes72  = extractosPeriodoActivo.filter(e => e.h72 && e.estado72h !== "Completado").length;
+  const pendientes24  = extractosPeriodoActivo.filter(e => e.h24 && e.estado24h !== "Completado").length;
+  const completados24  = extractosPeriodoActivo.filter(e => e.h24 && e.estado24h === "Completado").length;
+
 
   const [mesFiltro, setMesFiltro] = useState<string>("todos");
   const [tipoGrafica, setTipoGrafica] = useState<"marca" | "mes">("marca");
@@ -133,6 +136,14 @@ function Dashboard() {
     .filter(e => e.parsedH72 && e.parsedH72 > ahora)
     .filter(e => obtenerTurnoPorHora(e.parsedH72!.toISOString()) === turnoActual)
     .sort((a, b) => a.parsedH72!.getTime() - b.parsedH72!.getTime())
+    .slice(0, 6);
+
+   const proximos24 = extractos
+    .filter(e => e.h24 && e.estado24h !== "Completado")
+    .map(e => ({ ...e, parsedH24: parseMexicanDate(e.h24) }))
+    .filter(e => e.parsedH24 && e.parsedH24 > ahora)
+    .filter(e => obtenerTurnoPorHora(e.parsedH24!.toISOString()) === turnoActual)
+    .sort((a, b) => a.parsedH24!.getTime() - b.parsedH24!.getTime())
     .slice(0, 6);
 
   // Próximas Purgas 8 = fechaLlenado + 64 horas, solo las futuras y del turno actual
@@ -197,84 +208,58 @@ function Dashboard() {
             color="text-emerald-600"
             bg="bg-emerald-50"
           />
+         
         </div>
       )}
-
-      {/* Charts row */}
-      <div className="grid gap-5 lg:grid-cols-5 xl:grid-cols-10">
-        {/* Bar chart */}
-        <Card className="lg:col-span-3 xl:col-span-4 border-border shadow-sm">
-          <CardHeader className="pb-0 pt-5 px-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2 cursor-pointer" onClick={() => setTipoGrafica(tipoGrafica === "marca" ? "mes" : "marca")}>
-                  <TrendingUp className="h-4 w-4 text-primary" />
-                  {tipoGrafica === "marca" ? "Distribución por Marca" : "Distribución por Meses"}
-                </CardTitle>
-                <p className="text-xs text-muted-foreground mt-0.5 cursor-pointer hover:underline" onClick={() => setTipoGrafica(tipoGrafica === "marca" ? "mes" : "marca")}>
-                  {tipoGrafica === "marca" ? "Clic aquí para ver por meses" : "Clic aquí para ver por marca"}
-                </p>
-              </div>
-              {/* Filtro de mes (solo si está en modo marca) */}
-              {tipoGrafica === "marca" && (
-                <select
-                  value={mesFiltro}
-                  onChange={e => setMesFiltro(e.target.value)}
-                  className="shrink-0 h-8 rounded-md border border-border bg-background px-2 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
-                >
-                  <option value="todos">Todos los meses</option>
-                  {mesesDisponibles.map(m => (
-                    <option key={m.key} value={m.key} className="capitalize">{m.label}</option>
-                  ))}
-                </select>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="pt-3 px-3 pb-4">
-            <div className="h-72 w-full">
-              {chartData.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground">
-                  <FlaskConical className="h-10 w-10 opacity-20" />
-                  <p className="text-sm">Sin datos para mostrar.</p>
-                </div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                    <XAxis 
-                      dataKey="name" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
-                      angle={-40}
-                      textAnchor="end"
-                      height={50}
-                    />
-                    <YAxis 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fontSize: 11, fill: '#6b7280' }}
-                    />
-                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.03)' }} />
-                    <Bar dataKey="total" radius={[4, 4, 0, 0]} maxBarSize={40}>
-                      {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={BAR_COLORS[index % BAR_COLORS.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Proximos Chequeos 72h */}
-        <div className="lg:col-span-2 xl:col-span-3">
+      
+      
+      <div className="grid gap-5 grid-cols-1 lg:grid-cols-3 mb-5">
+        {/* Proximos Chequeos 24 HR */}
+        <div>
           <Card className="h-full border-border shadow-sm flex flex-col">
             <CardHeader className="py-4 px-5 border-b border-border/50 bg-muted/20">
               <CardTitle className="text-sm font-semibold flex items-center gap-2 text-foreground">
                 <Clock className="h-4 w-4 text-sky-500" />
-                Próximos Chequeos 72h ({turnoActual || "..."})
+                Próximos Chequeos 24h
+              </CardTitle>
+              <p className="text-xs text-muted-foreground font-medium">Chequeos de tu turno actual</p>
+            </CardHeader>
+            <CardContent className="p-0 flex-1 flex flex-col">
+              {proximos24.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center p-6 text-muted-foreground text-center">
+                  <CheckCircle2 className="h-8 w-8 mb-2 opacity-20" />
+                  <p className="text-sm">Todo al día</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border/50">
+                  {proximos24.map((ext) => (
+                    <div key={ext.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
+                      <div>
+                        <p className="font-semibold text-sm text-foreground">Tanque {ext.tanque}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{ext.marca}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-sm text-sky-600">
+                          {format(ext.parsedH24!, "HH:mm")}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          {format(ext.parsedH24!, "d MMM", { locale: es })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+        {/* Proximos Chequeos 72h */}
+        <div>
+          <Card className="h-full border-border shadow-sm flex flex-col">
+            <CardHeader className="py-4 px-5 border-b border-border/50 bg-muted/20">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                <Clock className="h-4 w-4 text-sky-500" />
+                Próximos Chequeos 72h
               </CardTitle>
               <p className="text-xs text-muted-foreground font-medium">Chequeos de tu turno actual</p>
             </CardHeader>
@@ -309,12 +294,12 @@ function Dashboard() {
         </div>
 
         {/* Proximas Purgas */}
-        <div className="lg:col-span-2 xl:col-span-3">
+        <div>
           <Card className="h-full border-border shadow-sm flex flex-col">
             <CardHeader className="py-4 px-5 border-b border-border/50 bg-muted/20">
               <CardTitle className="text-sm font-semibold flex items-center gap-2 text-foreground">
                 <Droplets className="h-4 w-4 text-rose-500" />
-                Próximas Purgas ({turnoActual || "..."})
+                Próximas Purgas
               </CardTitle>
               <p className="text-xs text-muted-foreground font-medium">Purgas de tu turno actual (8ª - 64 hrs)</p>
             </CardHeader>
@@ -347,6 +332,73 @@ function Dashboard() {
             </CardContent>
           </Card>
         </div>
+      </div>
+      
+      {/* Chart row */}
+      <div className="grid gap-5 mt-5">
+        <Card className="border-border shadow-sm">
+          <CardHeader className="pb-0 pt-5 px-5" >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2 cursor-pointer" onClick={() => setTipoGrafica(tipoGrafica === "marca" ? "mes" : "marca")}>
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  {tipoGrafica === "marca" ? "Distribución por Marca" : "Distribución por Meses"}
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5 cursor-pointer hover:underline" onClick={() => setTipoGrafica(tipoGrafica === "marca" ? "mes" : "marca")}>
+                  {tipoGrafica === "marca" ? "Clic aquí para ver por meses" : "Clic aquí para ver por marca"}
+                </p>
+              </div>
+              {tipoGrafica === "marca" && (
+                <select
+                  value={mesFiltro}
+                  onChange={e => setMesFiltro(e.target.value)}
+                  className="shrink-0 h-8 rounded-md border border-border bg-background px-2 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
+                >
+                  <option value="todos">Todos los meses</option>
+                  {mesesDisponibles.map(m => (
+                    <option key={m.key} value={m.key} className="capitalize">{m.label}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="pt-3 px-3 pb-4">
+            <div className="h-[400px] w-full">
+              {chartData.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground">
+                  <FlaskConical className="h-10 w-10 opacity-20" />
+                  <p className="text-sm">Sin datos para mostrar.</p>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 60 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 11, fill: '#6b7280' }}
+                      angle={-40}
+                      textAnchor="end"
+                      height={100}
+                    />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 11, fill: '#6b7280' }}
+                    />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.03)' }} />
+                    <Bar dataKey="total" radius={[4, 4, 0, 0]} maxBarSize={40}>
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={BAR_COLORS[index % BAR_COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

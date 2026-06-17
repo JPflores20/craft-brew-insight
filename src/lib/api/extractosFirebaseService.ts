@@ -47,8 +47,6 @@ export async function guardarExtractosEnFirestore(
 
     for (let i = 0; i < total; i++) {
       const fila = filas[i];
-      
-      // Omitir si ya existe
       if (idsExistentes.has(fila.id)) {
         omitidos++;
         continue;

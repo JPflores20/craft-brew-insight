@@ -1,13 +1,12 @@
 export type MarcaCerveza =
   | "Corona"
-  | "Corona Extra"
-  | "Corona C"
+  | "Corona Light E"
   | "Corona E"
   | "Corona Light Shine"
   | "Corona Golden Light"
-  | "Victoria"
+  | "Chocolate Negra"
   | "Negra Modelo"
-  | "Modelo Especial"
+  | "Limon y Sal"
   | "Modelo Pura Malta"
   | "Modelo E"
   | "Michelob Ultra"
@@ -15,11 +14,16 @@ export type MarcaCerveza =
   | "Bud Light Chelada"
   | "Pacifico"
   | "Pacifico Suave"
+  | "Pacifico Light"
+  | "Pacifico E"
   | "Barrilito"
   | "Flying Fish"
-  | "Negra Modelo"
+  | "Estrella"
   | "Estrella E"
-  | "Victoria";
+  | "Victoria"
+  | "Modelo Especial"
+  | "Busch"
+  | "Budweiser";
 
 
 export type EventType = "Turno1" | "Turno2" | "Turno3";
@@ -50,6 +54,7 @@ export interface ExtractoRow {
   h120: string | null;
   h144: string | null;
   estado72h?: "Pendiente" | "Completado"; 
+  estado24h?: "Pendiente" | "Completado";
   estado: ExtractoEstado;
 }
 

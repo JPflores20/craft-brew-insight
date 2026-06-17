@@ -2,14 +2,12 @@ import { MarcaCerveza } from "../types/proceso";
 
 export const BRANDS: MarcaCerveza[] = [
   "Corona",
-  "Corona Extra",
-  "Corona C",
+  "Corona Light E",
   "Corona E",
   "Corona Light Shine",
   "Corona Golden Light",
-  "Victoria",
-  "Negra Modelo",
-  "Modelo Especial",
+  "Chocolate Negra",
+  "Limon y Sal",
   "Modelo Pura Malta",
   "Modelo E",
   "Michelob Ultra",
@@ -17,9 +15,17 @@ export const BRANDS: MarcaCerveza[] = [
   "Bud Light Chelada",
   "Pacifico",
   "Pacifico Suave",
+  "Pacifico Light",
+  "Pacifico E",
   "Barrilito",
   "Flying Fish",
-  "Estrella E"
+  "Negra Modelo",
+  "Estrella",
+  "Estrella E",
+  "Victoria",
+  "Modelo Especial",
+  "Busch",
+  "Budweiser"
 ];
 
 export const TANKS = Array.from({ length: 45 }, (_, i) => `TK-${101 + i}`);
