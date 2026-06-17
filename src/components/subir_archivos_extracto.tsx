@@ -341,17 +341,17 @@ export function UploadExtractos() {
   const isLoading = status?.tipo === "leyendo";
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full max-w-sm space-y-2">
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer flex flex-col items-center justify-center min-h-[200px] ${
+        className={`border border-dashed rounded-xl px-3 py-1.5 transition-all cursor-pointer flex items-center justify-center gap-2 ${
           isDragging
-            ? "border-emerald-500 bg-emerald-500/5 scale-[1.01]"
+            ? "border-emerald-500 bg-emerald-500/5 scale-[1.02]"
             : isLoading
               ? "border-blue-500/40 bg-blue-500/5 pointer-events-none"
-              : "border-muted-foreground/20 hover:border-primary/50 hover:bg-muted/30"
+              : "border-slate-300 hover:border-emerald-500 hover:bg-emerald-50 hover:shadow-sm bg-white"
         }`}
         onClick={() => {
           if (!isLoading) document.getElementById("file-upload-extracto")?.click();
@@ -365,36 +365,29 @@ export function UploadExtractos() {
           onChange={handleFileChange}
         />
 
-        <div className="p-4 bg-background rounded-full shadow-sm border mb-3">
-          {isLoading ? (
-            <Loader2 className="h-6 w-6 text-blue-500 animate-spin" />
-          ) : (
-            <Upload className="h-6 w-6 text-emerald-500" />
-          )}
-        </div>
+        {isLoading ? (
+          <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
+        ) : (
+          <Upload className="h-4 w-4 text-emerald-600" />
+        )}
 
-        <h3 className="font-semibold text-sm">
-          {isLoading ? "Procesando archivo..." : "Importar Archivo de Platos (.xlsx)"}
-        </h3>
-        <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-          {isLoading
-            ? "Limpiando columnas innecesarias y subiendo a la base de datos..."
-            : "Suelta aquí tu archivo .xlsx de Platos. Se conservarán los horarios de medición y se programarán en la Agenda."}
-        </p>
+        <span className="font-bold text-sm text-slate-700 whitespace-nowrap">
+          {isLoading ? "Procesando..." : "Importar Excel"}
+        </span>
       </div>
 
       {progreso && progreso.fase !== "completado" && progreso.fase !== "error" && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="space-y-1.5 px-1">
+          <div className="flex items-center justify-between text-[10px] text-slate-500 font-medium">
             <span className="flex items-center gap-1.5">
-              <Database className="h-3.5 w-3.5" />
+              <Database className="h-3 w-3" />
               {progreso.mensaje}
             </span>
-            <span className="font-mono tabular-nums">{pct}%</span>
+            <span className="font-mono">{pct}%</span>
           </div>
-          <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+          <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-blue-500 transition-all duration-300 ease-out"
+              className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-300"
               style={{ width: `${pct}%` }}
             />
           </div>
@@ -402,66 +395,44 @@ export function UploadExtractos() {
       )}
 
       {resumenLimpieza && status?.tipo === "exito" && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="rounded-lg border bg-muted/30 p-3 text-center">
-            <FileSpreadsheet className="h-4 w-4 mx-auto mb-1 text-muted-foreground" />
-            <p className="text-lg font-bold tabular-nums">{resumenLimpieza.totalOriginal.toLocaleString()}</p>
-            <p className="text-[10px] text-muted-foreground">Filas originales</p>
+        <div className="grid grid-cols-4 gap-2">
+          <div className="rounded-lg border border-slate-100 bg-slate-50 p-2 text-center">
+            <p className="text-sm font-black text-slate-700">{resumenLimpieza.totalOriginal}</p>
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Filas</p>
           </div>
-          <div className="rounded-lg border bg-emerald-500/10 p-3 text-center">
-            <ShieldCheck className="h-4 w-4 mx-auto mb-1 text-emerald-500" />
-            <p className="text-lg font-bold tabular-nums text-emerald-600">{resumenLimpieza.conservadas.toLocaleString()}</p>
-            <p className="text-[10px] text-muted-foreground">Conservadas</p>
+          <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-2 text-center">
+            <p className="text-sm font-black text-emerald-600">{resumenLimpieza.conservadas}</p>
+            <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-wider mt-0.5">Éxito</p>
           </div>
-          <div className="rounded-lg border bg-red-500/10 p-3 text-center">
-            <Trash2 className="h-4 w-4 mx-auto mb-1 text-red-400" />
-            <p className="text-lg font-bold tabular-nums text-red-500">{resumenLimpieza.descartadas.toLocaleString()}</p>
-            <p className="text-[10px] text-muted-foreground">Filas descartadas</p>
+          <div className="rounded-lg border border-red-100 bg-red-50 p-2 text-center">
+            <p className="text-sm font-black text-red-500">{resumenLimpieza.descartadas}</p>
+            <p className="text-[9px] font-bold text-red-400 uppercase tracking-wider mt-0.5">Desc.</p>
           </div>
-          <div className="rounded-lg border bg-blue-500/10 p-3 text-center">
-            <CalendarDays className="h-4 w-4 mx-auto mb-1 text-blue-500" />
-            <p className="text-lg font-bold tabular-nums text-blue-600">{resumenLimpieza.periodo}</p>
-            <p className="text-[10px] text-muted-foreground">Periodo guardado</p>
+          <div className="rounded-lg border border-blue-100 bg-blue-50 p-2 text-center">
+            <p className="text-sm font-black text-blue-600">{resumenLimpieza.periodo.split("-")[1]}</p>
+            <p className="text-[9px] font-bold text-blue-500 uppercase tracking-wider mt-0.5">Mes</p>
           </div>
         </div>
       )}
 
-      {resumenLimpieza && resumenLimpieza.columnasDescartadas.length > 0 && status?.tipo === "exito" && (
-        <details className="text-xs text-muted-foreground border rounded-lg p-3">
-          <summary className="cursor-pointer font-medium">
-            {resumenLimpieza.columnasDescartadas.length} columnas descartadas del archivo original
-          </summary>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {resumenLimpieza.columnasDescartadas.map((col) => (
-              <span
-                key={col}
-                className="px-2 py-0.5 rounded-full bg-muted text-[10px] font-mono"
-              >
-                {col}
-              </span>
-            ))}
-          </div>
-        </details>
-      )}
-
       {status && (
         <div
-          className={`flex items-start gap-3 p-3 text-sm rounded-lg border transition-all ${
+          className={`flex items-start gap-2 p-2 text-xs rounded-lg border transition-all shadow-sm ${
             status.tipo === "exito"
-              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-700"
               : status.tipo === "error"
-                ? "bg-destructive/10 border-destructive/20 text-destructive"
-                : "bg-blue-500/10 border-blue-500/20 text-blue-600"
+                ? "bg-red-50 border-red-200 text-red-700"
+                : "bg-blue-50 border-blue-200 text-blue-700"
           }`}
         >
           {status.tipo === "exito" ? (
-            <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5 text-emerald-500" />
+            <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-500" />
           ) : status.tipo === "error" ? (
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+            <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
           ) : (
-            <Loader2 className="h-4 w-4 shrink-0 mt-0.5 animate-spin" />
+            <Loader2 className="h-4 w-4 shrink-0 animate-spin text-blue-500" />
           )}
-          <span className="font-medium leading-snug">{status.mensaje}</span>
+          <span className="font-semibold leading-snug">{status.mensaje}</span>
         </div>
       )}
     </div>

@@ -75,64 +75,57 @@ function AgendaPage() {
 
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto pb-10">
       {/* Encabezado Principal */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-white/50 p-6 rounded-2xl border border-slate-100 shadow-sm backdrop-blur-sm">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Agenda General</h1>
-          <p className="text-sm text-muted-foreground">Planificación operativa por turnos</p>
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-800">Agenda General</h1>
+          <p className="text-sm text-slate-500 mt-1 font-medium">Planificación operativa por turnos</p>
         </div>
-      </div>
-
-      {/*SELECCIÓN DE TURNO Y PURGA */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b pb-4">
+        
+        {/*SELECCIÓN DE TURNO Y PURGA */}
         <div className="flex flex-wrap items-center gap-4">
-          <div className="flex bg-muted p-1 rounded-lg gap-1 border text-sm">
-            {(["TODOS", "Turno 1", "Turno 2", "Turno 3"] as string[]).map((turno) => (
-              <button
-                key={turno}
-                type="button"
-                onClick={() => set_turnoSeleccionado(turno)}
-                className={`px-4 py-2 rounded-md font-medium transition-all ${
-                  turnoSeleccionado === turno
-                    ? "bg-background text-foreground shadow-sm font-semibold"
-                    : "text-muted-foreground hover:bg-background/40 hover:text-foreground"
-                }`}
-              >
-                {turno === "TODOS" ? "Ver Todo" : turno}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-muted-foreground">Número de Purga:</span>
+          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Purga Nº:</span>
             <select
               value={purgaSeleccionada}
               onChange={(e) => set_purgaSeleccionada(Number(e.target.value))}
-              className="bg-background border rounded-md px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring"
+              className="bg-transparent border-none text-sm font-bold text-slate-700 focus:ring-0 cursor-pointer outline-none"
             >
               {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
                 <option key={num} value={num}>Purga {num}</option>
               ))}
             </select>
           </div>
-        </div>
 
-        {/**/}
-        {turnoSeleccionado !== "TODOS" && (
-          <span className="text-xs text-muted-foreground animate-fade-in bg-secondary px-3 py-1.5 rounded-full font-medium">
-            Purgas y Chequeo de Platos del Turno:  <strong className="text-primary">{turnoSeleccionado}</strong>
-          </span>
-        )}
+          <div className="flex bg-slate-100/80 p-1.5 rounded-xl gap-1">
+            {(["TODOS", "Turno 1", "Turno 2", "Turno 3"] as string[]).map((turno) => (
+              <button
+                key={turno}
+                type="button"
+                onClick={() => set_turnoSeleccionado(turno)}
+                className={`px-4 py-1.5 rounded-lg text-sm transition-all duration-300 ${
+                  turnoSeleccionado === turno
+                    ? "bg-white text-slate-800 shadow-sm font-bold scale-105"
+                    : "text-slate-500 font-semibold hover:bg-white/50 hover:text-slate-700"
+                }`}
+              >
+                {turno === "TODOS" ? "Ver Todo" : turno}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Calendario con los datos ya filtrados */}
-      <AgendaCalendar 
-        cursor={cursor} 
-        set_cursor={set_cursor} 
-        days={days} 
-        events={eventosFiltrados}
-      />
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-2">
+        <AgendaCalendar 
+          cursor={cursor} 
+          set_cursor={set_cursor} 
+          days={days} 
+          events={eventosFiltrados}
+        />
+      </div>
     </div>
   );
 }

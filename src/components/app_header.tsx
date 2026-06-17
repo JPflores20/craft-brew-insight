@@ -23,33 +23,33 @@ export function AppHeader() {
   const tc = turno && TURNO_CONFIG[turno] ? TURNO_CONFIG[turno] : { label: turno ?? "Desconocido", bg: "bg-gray-100", text: "text-gray-600" };
 
   return (
-    <header className="sticky top-0 z-20 flex h-14 items-center gap-4 border-b border-border bg-card px-5 shadow-sm">
-      <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-colors -ml-1" />
+    <header className="sticky top-0 z-20 flex h-14 items-center gap-4 border-b border-slate-200/60 bg-white/60 backdrop-blur-lg px-5 shadow-sm transition-all duration-300">
+      <SidebarTrigger className="text-slate-400 hover:text-slate-700 transition-colors -ml-1" />
 
       {/* Date */}
-      <div className="hidden md:flex flex-col leading-none">
-        <span className="text-sm font-semibold capitalize text-foreground">
+      <div className="hidden md:flex flex-col leading-tight">
+        <span className="text-sm font-semibold text-slate-700 tracking-tight first-letter:uppercase">
           {format(now, "EEEE d 'de' MMMM yyyy", { locale: es })}
         </span>
-        <span className="text-xs text-muted-foreground font-mono mt-0.5">
+        <span className="text-[11px] text-slate-500 font-medium">
           {format(now, "HH:mm")} hrs
         </span>
       </div>
 
       {/* Turno badge */}
-      <div className="hidden lg:block">
-        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${tc.bg} ${tc.text}`}>
+      <div className="hidden lg:flex items-center ml-2">
+        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold shadow-sm border border-slate-200/50 ${tc.bg} ${tc.text}`}>
           {tc.label}
         </span>
       </div>
 
       {/* Right */}
-      <div className="ml-auto flex items-center gap-1.5">
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground relative">
+      <div className="ml-auto flex items-center gap-1">
+        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100/80 transition-colors relative">
           <Bell className="h-4 w-4" />
-          <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
+          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-amber-500 shadow-sm border border-white" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100/80 transition-colors">
           <Settings className="h-4 w-4" />
         </Button>
       </div>

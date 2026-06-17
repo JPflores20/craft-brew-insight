@@ -27,7 +27,7 @@ function Checar72Page() {
   const searchParams: any = useSearch({ strict: false });
   const [query, set_query] = useState(searchParams.tanque || "");
   const [marca, set_marca] = useState<string>("all");
-  const [turno, set_turno] = useState<string>("all");
+  const [turno, set_turno] = useState<string>(() => obtenerTurnoPorHora(new Date().toISOString()) || "all");
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
   const [page, set_page] = useState(0);
 
@@ -60,95 +60,91 @@ function Checar72Page() {
   const rows = filtered.slice(page * page_size, (page + 1) * page_size);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-6 max-w-5xl mx-auto pb-10">
+      <div className="flex flex-col gap-4 bg-white/50 p-6 rounded-2xl border border-slate-100 shadow-sm backdrop-blur-sm">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Chequeo a las 72 Hrs</h1>
-          <p className="text-sm text-muted-foreground">Vista filtrada de Extractos</p>
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-800">Chequeo a las 72 Hrs</h1>
+          <p className="text-sm text-slate-500 mt-1 font-medium">Vista filtrada de Extractos</p>
         </div>
 
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative w-56 shrink-0">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => { set_query(e.target.value); set_page(0); }}
+              placeholder="Buscar por tanque..."
+              className="pl-9 bg-slate-50 border-slate-200 rounded-xl h-10 font-medium"
+            />
+          </div>
+          
+          <Select value={periodoActual} onValueChange={(v) => { fetchData(v); set_page(0); }}>
+            <SelectTrigger className="w-36 bg-slate-50 border-slate-200 rounded-xl h-10 font-medium"><SelectValue placeholder="Mes" /></SelectTrigger>
+            <SelectContent>
+              {periodosDisponibles.map((p) => {
+                const [y, m] = p.split("-");
+                const date = new Date(parseInt(y), parseInt(m) - 1, 1);
+                const mesStr = date.toLocaleString("es-MX", { month: "long", year: "numeric" });
+                return (
+                  <SelectItem key={p} value={p}>
+                    {mesStr.charAt(0).toUpperCase() + mesStr.slice(1)}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+
+          <Select value={marca} onValueChange={(v) => { set_marca(v); set_page(0); }}>
+            <SelectTrigger className="w-40 bg-slate-50 border-slate-200 rounded-xl h-10 font-medium"><SelectValue placeholder="Marca" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las marcas</SelectItem>
+              {BRANDS.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={turno} onValueChange={(v) => { set_turno(v); set_page(0); }}>
+            <SelectTrigger className="w-40 bg-slate-50 border-slate-200 rounded-xl h-10 font-medium"><SelectValue placeholder="Turno" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los turnos</SelectItem>
+              <SelectItem value="Turno 1">Turno 1</SelectItem>
+              <SelectItem value="Turno 2">Turno 2</SelectItem>
+              <SelectItem value="Turno 3">Turno 3</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button 
+            variant="outline" 
+            className="gap-2 bg-slate-50 border-slate-200 rounded-xl h-10 font-medium ml-auto"
+            onClick={() => {
+              setSortOrder(sortOrder === "desc" ? "asc" : "desc");
+              set_page(0);
+            }}
+          >
+            {sortOrder === "desc" ? (
+              <><ArrowDownAZ className="h-4 w-4" /> Más recientes</>
+            ) : (
+              <><ArrowUpZA className="h-4 w-4" /> Más antiguos</>
+            )}
+          </Button>
+        </div>
       </div>
       
-      <Card className="shadow-xl border-t-4 border-t-emerald-500 bg-gradient-to-b from-card to-emerald-50/10 dark:to-emerald-950/10 mt-4 overflow-hidden rounded-2xl">
-        <CardHeader className="bg-muted/20 border-b pb-6">
-          <CardTitle className="text-xl font-extrabold flex items-center gap-2 tracking-tight">
-            <span>Extracto de 72 Hrs</span>
-          </CardTitle>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <div className="relative w-full max-w-xs">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={query}
-                onChange={(e) => { set_query(e.target.value); set_page(0); }}
-                placeholder="Buscar por tanque..."
-                className="pl-9"
-              />
-            </div>
-            
-            <Select value={periodoActual} onValueChange={(v) => { fetchData(v); set_page(0); }}>
-              <SelectTrigger className="w-40"><SelectValue placeholder="Mes" /></SelectTrigger>
-              <SelectContent>
-                {periodosDisponibles.map((p) => {
-                  const [y, m] = p.split("-");
-                  const date = new Date(parseInt(y), parseInt(m) - 1, 1);
-                  const mesStr = date.toLocaleString("es-MX", { month: "long", year: "numeric" });
-                  return (
-                    <SelectItem key={p} value={p}>
-                      {mesStr.charAt(0).toUpperCase() + mesStr.slice(1)}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-
-            <Select value={marca} onValueChange={(v) => { set_marca(v); set_page(0); }}>
-              <SelectTrigger className="w-48"><SelectValue placeholder="Marca" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las marcas</SelectItem>
-                {BRANDS.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={turno} onValueChange={(v) => { set_turno(v); set_page(0); }}>
-              <SelectTrigger className="w-48"><SelectValue placeholder="Turno (72 Hrs)" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los turnos</SelectItem>
-                <SelectItem value="Turno 1">Turno 1 (23:00-05:59)</SelectItem>
-                <SelectItem value="Turno 2">Turno 2 (06:00-15:29)</SelectItem>
-                <SelectItem value="Turno 3">Turno 3 (15:30-22:59)</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button 
-              variant="outline" 
-              className="gap-2"
-              onClick={() => {
-                setSortOrder(sortOrder === "desc" ? "asc" : "desc");
-                set_page(0);
-              }}
-            >
-              {sortOrder === "desc" ? (
-                <><ArrowDownAZ className="h-4 w-4" />Orden por fecha mas reciente</>
-              ) : (
-                <><ArrowUpZA className="h-4 w-4" />Orden por fecha mas antigua</>
-              )}
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="pt-4">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mt-4">
+        <div className="p-0">
+          <div className="pt-0">
             <Checar72Table rows={rows} />
-            <div className="mt-4 flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">
+            <div className="flex items-center justify-between text-sm p-4 bg-slate-50/50 border-t border-slate-100">
+              <span className="text-slate-500 font-medium">
                 {filtered.length} registros · Página {page + 1} de {pages}
               </span>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" disabled={page === 0} onClick={() => set_page((p) => p - 1)}>Anterior</Button>
-                <Button variant="outline" size="sm" disabled={page >= pages - 1} onClick={() => set_page((p) => p + 1)}>Siguiente</Button>
+                <Button variant="outline" size="sm" disabled={page === 0} onClick={() => set_page((p) => p - 1)} className="font-semibold text-slate-600 hover:text-slate-800 shadow-sm">Anterior</Button>
+                <Button variant="outline" size="sm" disabled={page >= pages - 1} onClick={() => set_page((p) => p + 1)} className="font-semibold text-slate-600 hover:text-slate-800 shadow-sm">Siguiente</Button>
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
+
 

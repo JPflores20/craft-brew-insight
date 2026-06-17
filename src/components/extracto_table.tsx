@@ -11,7 +11,7 @@ function formatDate(isoString: string | null | undefined) {
   try {
     const d = new Date(isoString);
     if (isNaN(d.getTime())) return isoString;
-    return format(d, "dd/MM/yyyy HH:mm");
+    return format(d, "dd/MM HH:mm");
   } catch (e) {
     return isoString;
   }
@@ -19,47 +19,49 @@ function formatDate(isoString: string | null | undefined) {
 
 export function ExtractoTable({ rows }: ExtractoTableProps) {
   return (
-    <div className="rounded-md border overflow-x-auto">
+    <div className="w-full overflow-x-auto">
       <Table>
-        <TableHeader className="bg-emerald-900/5 dark:bg-emerald-500/10 sticky top-0 backdrop-blur-sm z-10">
-          <TableRow className="border-b border-emerald-500/20 hover:bg-transparent">
-            <TableHead className="font-bold text-emerald-900 dark:text-emerald-100">Marca</TableHead>
-            <TableHead className="font-bold text-emerald-900 dark:text-emerald-100">Tanque</TableHead>
-            <TableHead className="font-bold text-emerald-900 dark:text-emerald-100">Fecha Llenado</TableHead>
-            <TableHead className="font-bold text-emerald-900 dark:text-emerald-100">24 Hrs</TableHead>
-            <TableHead className="font-bold text-emerald-900 dark:text-emerald-100">48 Hrs</TableHead>
-            <TableHead className="font-bold text-emerald-900 dark:text-emerald-100">72 Hrs</TableHead>
-            <TableHead className="font-bold text-emerald-900 dark:text-emerald-100">96 Hrs</TableHead>
-            <TableHead className="font-bold text-emerald-900 dark:text-emerald-100">120 Hrs</TableHead>
-            <TableHead className="font-bold text-emerald-900 dark:text-emerald-100">144 Hrs</TableHead>
+        <TableHeader className="bg-slate-100/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+          <TableRow className="border-b-0 hover:bg-transparent">
+            <TableHead className="border-r border-slate-200 text-sm font-extrabold tracking-widest text-slate-700 py-4">Marca</TableHead>
+            <TableHead className="border-r border-slate-200 text-sm font-extrabold tracking-widest text-slate-700 py-4">Tanque</TableHead>
+            <TableHead className="border-r border-slate-200 text-sm font-extrabold tracking-widest text-slate-700 py-4">Fecha Llenado</TableHead>
+            <TableHead className="border-r border-slate-200 text-sm font-extrabold tracking-widest text-slate-700 py-4 text-center">24 Hrs</TableHead>
+            <TableHead className="border-r border-slate-200 text-sm font-extrabold tracking-widest text-slate-700 py-4 text-center">48 Hrs</TableHead>
+            <TableHead className="border-r border-slate-200 text-sm font-extrabold tracking-widest text-slate-700 py-4 text-center">72 Hrs</TableHead>
+            <TableHead className="border-r border-slate-200 text-sm font-extrabold tracking-widest text-slate-700 py-4 text-center">96 Hrs</TableHead>
+            <TableHead className="border-r border-slate-200 text-sm font-extrabold tracking-widest text-slate-700 py-4 text-center">120 Hrs</TableHead>
+            <TableHead className="text-sm font-extrabold tracking-widest text-slate-700 py-4 text-center">144 Hrs</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {rows.map((r) => (
-            <TableRow key={r.id} className="hover:bg-muted/40 transition-colors border-b-muted group">
-              <TableCell className="whitespace-nowrap">
-                <span className="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/30 px-2.5 py-0.5 text-xs font-semibold text-blue-800 dark:text-blue-300">
+            <TableRow key={r.id} className="hover:bg-amber-50/60 transition-colors border-b border-slate-100 group">
+              <TableCell className="border-r border-slate-100 whitespace-nowrap py-3">
+                <span className="inline-flex items-center rounded-lg bg-blue-100 px-3 py-1 text-sm font-black text-blue-800 border border-blue-200 shadow-sm">
                   {r.marca}
                 </span>
               </TableCell>
-              <TableCell className="font-bold text-base">{r.tanque}</TableCell>
-              <TableCell className="text-sm font-bold tracking-tight whitespace-nowrap text-emerald-700 dark:text-emerald-400">
+              <TableCell className="border-r border-slate-100 font-black text-sm text-slate-900">{r.tanque}</TableCell>
+              <TableCell className="border-r border-slate-100 text-sm font-bold tracking-tight whitespace-nowrap text-slate-700 tabular-nums">
                 {formatDate(r.fechaLlenado)}
               </TableCell>
-              <TableCell className={`text-xs whitespace-nowrap font-mono ${!r.h24 ? 'text-muted-foreground/40' : 'text-foreground'}`}>{formatDate(r.h24)}</TableCell>
-              <TableCell className={`text-xs whitespace-nowrap font-mono ${!r.h48 ? 'text-muted-foreground/40' : 'text-foreground'}`}>{formatDate(r.h48)}</TableCell>
-              <TableCell className={`text-xs whitespace-nowrap font-mono ${!r.h72 ? 'text-muted-foreground/40' : 'text-foreground'}`}>{formatDate(r.h72)}</TableCell>
-              <TableCell className={`text-xs whitespace-nowrap font-mono ${!r.h96 ? 'text-muted-foreground/40' : 'text-foreground'}`}>{formatDate(r.h96)}</TableCell>
-              <TableCell className={`text-xs whitespace-nowrap font-mono ${!r.h120 ? 'text-muted-foreground/40' : 'text-foreground'}`}>{formatDate(r.h120)}</TableCell>
-              <TableCell className={`text-xs whitespace-nowrap font-mono ${!r.h144 ? 'text-muted-foreground/40' : 'text-foreground'}`}>{formatDate(r.h144)}</TableCell>
+              <TableCell className={`border-r border-slate-100 text-sm whitespace-nowrap tabular-nums text-center ${!r.h24 ? 'text-slate-300' : 'text-slate-500 font-medium'}`}>{formatDate(r.h24)}</TableCell>
+              <TableCell className={`border-r border-slate-100 text-sm whitespace-nowrap tabular-nums text-center ${!r.h48 ? 'text-slate-300' : 'text-slate-500 font-medium'}`}>{formatDate(r.h48)}</TableCell>
+              <TableCell className={`border-r border-slate-100 text-sm whitespace-nowrap tabular-nums text-center ${!r.h72 ? 'text-slate-300' : 'text-slate-500 font-medium'}`}>{formatDate(r.h72)}</TableCell>
+              <TableCell className={`border-r border-slate-100 text-sm whitespace-nowrap tabular-nums text-center ${!r.h96 ? 'text-slate-300' : 'text-slate-500 font-medium'}`}>{formatDate(r.h96)}</TableCell>
+              <TableCell className={`border-r border-slate-100 text-sm whitespace-nowrap tabular-nums text-center ${!r.h120 ? 'text-slate-300' : 'text-slate-500 font-medium'}`}>{formatDate(r.h120)}</TableCell>
+              <TableCell className={`text-sm whitespace-nowrap tabular-nums text-center ${!r.h144 ? 'text-slate-300' : 'text-slate-500 font-medium'}`}>{formatDate(r.h144)}</TableCell>
             </TableRow>
           ))}
           {rows.length === 0 && (
             <TableRow>
-              <TableCell colSpan={9} className="text-center text-muted-foreground py-12">
-                <div className="flex flex-col items-center gap-2">
-                  <Circle className="h-8 w-8 opacity-50" />
-                  <p>Sin resultados</p>
+              <TableCell colSpan={9} className="text-center text-slate-500 py-16">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="p-4 bg-slate-100 rounded-full">
+                    <Circle className="h-6 w-6 text-slate-400" />
+                  </div>
+                  <p className="font-bold text-sm">Sin resultados</p>
                 </div>
               </TableCell>
             </TableRow>

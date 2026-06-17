@@ -13,7 +13,8 @@ function formatDate(isoString?: string | null) {
   try {
     const d = new Date(isoString);
     if (isNaN(d.getTime())) return isoString;
-    return format(d, "dd/MM/yyyy HH:mm");
+    // Quitamos el año para reducir ruido (ej: 16/06 21:14)
+    return format(d, "dd/MM HH:mm");
   } catch {
     return isoString;
   }
@@ -23,46 +24,50 @@ const PurgaRow = memo(({ r }: { r: PurgaRowType }) => {
   const updatePurgaField = useOperacionesStore(s => s.updatePurgaField);
 
   return (
-    <TableRow className="hover:bg-muted/40 transition-colors border-b-muted group">
+    <TableRow className="hover:bg-amber-50/60 transition-colors border-b border-slate-100 group">
       {/* Marca */}
-      <TableCell className="whitespace-nowrap">
-        <span className="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/30 px-2.5 py-0.5 text-xs font-semibold text-blue-800 dark:text-blue-300">
+      <TableCell className="whitespace-nowrap py-3">
+        <span className="inline-flex items-center rounded-lg bg-blue-100 px-3 py-1 text-sm font-black text-blue-800 border border-blue-200 shadow-sm">
           {r.marca}
         </span>
       </TableCell>
 
       {/* Tanque */}
-      <TableCell className="font-bold text-base">{r.tanque}</TableCell>
+      <TableCell className="font-black text-sm text-slate-900">{r.tanque}</TableCell>
 
       {/* Fecha Llenado */}
-      <TableCell className="text-sm font-bold tracking-tight whitespace-nowrap text-emerald-700 dark:text-emerald-400">
+      <TableCell className="text-sm font-bold tracking-tight whitespace-nowrap text-slate-700 tabular-nums">
         {formatDate(r.fechaLlenado)}
       </TableCell>
 
       {/* 8 Purgas */}
       {r.purgas.map((p, i) => (
         <Fragment key={i}>
-          <TableCell className="text-xs whitespace-nowrap font-mono text-muted-foreground border-l">
+          <TableCell className="text-sm whitespace-nowrap font-medium text-slate-500 tabular-nums border-l border-slate-100 text-center">
             {formatDate(p.fechaHora)}
           </TableCell>
           <TableCell className="text-center p-1">
             <select
               value={p.tiempo ? String(p.tiempo) : ""}
               onChange={(e) => updatePurgaField(r.id, i + 1, "tiempo", e.target.value)}
-              className="h-7 w-[55px] mx-auto bg-transparent border border-transparent hover:border-border rounded text-xs px-1 text-center cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring appearance-none"
+              className={`h-7 w-[55px] mx-auto bg-transparent border hover:border-amber-300 hover:bg-white rounded text-sm font-bold px-1 text-center cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500 appearance-none transition-colors ${
+                p.tiempo ? "border-amber-200 text-amber-900 bg-amber-50" : "border-transparent text-slate-400"
+              }`}
             >
-              <option value="" disabled className="text-muted-foreground">—</option>
-              {TIEMPOS.map(t => <option key={t} value={t} className="bg-popover text-popover-foreground">{t} min</option>)}
+              <option value="" disabled className="text-slate-300 font-medium">—</option>
+              {TIEMPOS.map(t => <option key={t} value={t} className="text-slate-800">{t} min</option>)}
             </select>
           </TableCell>
-          <TableCell className="border-r text-center p-1">
+          <TableCell className="border-r border-slate-100 text-center p-1">
             <select
               value={p.realiza || ""}
               onChange={(e) => updatePurgaField(r.id, i + 1, "realiza", e.target.value)}
-              className="h-7 w-[65px] mx-auto bg-transparent border border-transparent hover:border-border rounded text-xs px-1 text-center cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring appearance-none"
+              className={`h-7 w-[65px] mx-auto bg-transparent border hover:border-amber-300 hover:bg-white rounded text-sm font-bold px-1 text-center cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500 appearance-none transition-colors ${
+                p.realiza ? "border-amber-200 text-amber-900 bg-amber-50" : "border-transparent text-slate-400"
+              }`}
             >
-              <option value="" disabled className="text-muted-foreground">—</option>
-              {EMPLEADOS.map(emp => <option key={emp} value={emp} className="bg-popover text-popover-foreground">{emp}</option>)}
+              <option value="" disabled className="text-slate-300 font-medium">—</option>
+              {EMPLEADOS.map(emp => <option key={emp} value={emp} className="text-slate-800">{emp}</option>)}
             </select>
           </TableCell>
         </Fragment>
@@ -73,7 +78,7 @@ const PurgaRow = memo(({ r }: { r: PurgaRowType }) => {
 
 PurgaRow.displayName = "PurgaRow";
 
-const ITEMS_PER_PAGE = 15;
+const ITEMS_PER_PAGE = 20;
 
 export function PurgasTable({ rows }: { rows: PurgaRowType[] }) {
   const [page, setPage] = useState(1);
@@ -82,25 +87,25 @@ export function PurgasTable({ rows }: { rows: PurgaRowType[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border overflow-x-auto">
+      <div className="w-full overflow-x-auto">
         <Table className="w-max min-w-full text-sm">
-          <TableHeader className="bg-emerald-900/5 dark:bg-emerald-500/10 sticky top-0 backdrop-blur-sm z-20">
-            <TableRow className="border-b border-emerald-500/20 hover:bg-transparent">
-              <TableHead rowSpan={2} className="border-r align-middle font-bold text-emerald-900 dark:text-emerald-100 min-w-[130px]">Marca</TableHead>
-              <TableHead rowSpan={2} className="border-r align-middle font-bold text-emerald-900 dark:text-emerald-100 min-w-[80px]">Tanque</TableHead>
-              <TableHead rowSpan={2} className="border-r align-middle font-bold text-emerald-900 dark:text-emerald-100 whitespace-nowrap min-w-[150px]">Fecha Llenado</TableHead>
+          <TableHeader className="bg-slate-100/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-20 shadow-sm">
+            <TableRow className="border-b border-slate-200 hover:bg-transparent">
+              <TableHead rowSpan={2} className="border-r border-slate-200 align-middle text-sm font-extrabold  tracking-widest text-slate-700 min-w-[130px]">Marca</TableHead>
+              <TableHead rowSpan={2} className="border-r border-slate-200 align-middle text-sm font-extrabold  tracking-widest text-slate-700 min-w-[80px]">Tanque</TableHead>
+              <TableHead rowSpan={2} className="border-r border-slate-200 align-middle text-sm font-extrabold  tracking-widest text-slate-700 whitespace-nowrap min-w-[150px]">Fecha Llenado</TableHead>
               {Array.from({ length: 8 }, (_, i) => (
-                <TableHead key={i} colSpan={3} className="text-center border-r font-bold text-emerald-900 dark:text-emerald-100 text-xs">
+                <TableHead key={i} colSpan={3} className="text-center border-r border-slate-200 text sm font-extrabold  tracking-widest text-slate-700">
                   Purga {i + 1}
                 </TableHead>
               ))}
             </TableRow>
-            <TableRow className="border-b border-emerald-500/20 hover:bg-transparent">
+            <TableRow className="border-b-0 hover:bg-transparent">
               {Array.from({ length: 8 }, (_, i) => (
                 <Fragment key={i}>
-                  <TableHead className="text-[10px] whitespace-nowrap font-medium text-muted-foreground text-center min-w-[130px]">Fecha / Hora</TableHead>
-                  <TableHead className="text-[10px] whitespace-nowrap font-medium text-muted-foreground text-center min-w-[60px]">Tiempo</TableHead>
-                  <TableHead className="text-[10px] whitespace-nowrap font-medium text-muted-foreground text-center border-r min-w-[70px]">Realiza</TableHead>
+                  <TableHead className="text-sm whitespace-nowrap font-bold  tracking-wider text-slate-500 text-center min-w-[130px]">Fecha / Hora</TableHead>
+                  <TableHead className="text-sm whitespace-nowrap font-bold  tracking-wider text-slate-500 text-center min-w-[60px]">Tiempo</TableHead>
+                  <TableHead className="text-sm whitespace-nowrap font-bold  tracking-wider text-slate-500 text-center border-r border-slate-200 min-w-[70px]">Realiza</TableHead>
                 </Fragment>
               ))}
             </TableRow>
@@ -108,10 +113,12 @@ export function PurgasTable({ rows }: { rows: PurgaRowType[] }) {
           <TableBody>
             {paginatedRows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={27} className="text-center text-muted-foreground py-12">
-                  <div className="flex flex-col items-center gap-2">
-                    <Circle className="h-8 w-8 opacity-50" />
-                    <p>Sin resultados</p>
+                <TableCell colSpan={27} className="text-center text-slate-500 py-16">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="p-4 bg-slate-100 rounded-full">
+                      <Circle className="h-6 w-6 text-slate-400" />
+                    </div>
+                    <p className="font-bold text-sm">Sin resultados</p>
                   </div>
                 </TableCell>
               </TableRow>
@@ -124,22 +131,22 @@ export function PurgasTable({ rows }: { rows: PurgaRowType[] }) {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between px-2">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm font-bold text-slate-600">
             Mostrando {(page - 1) * ITEMS_PER_PAGE + 1}–{Math.min(page * ITEMS_PER_PAGE, rows.length)} de {rows.length}
           </p>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-3 py-1 text-sm border rounded hover:bg-muted disabled:opacity-50"
+              className="px-3 py-1 text-sm font-bold border border-slate-200 bg-white rounded hover:bg-slate-100 disabled:opacity-50 transition-colors"
             >
               Anterior
             </button>
-            <span className="text-sm px-2">Página {page} de {totalPages}</span>
+            <span className="text-sm font-bold px-2 text-slate-700">Página {page} de {totalPages}</span>
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="px-3 py-1 text-sm border rounded hover:bg-muted disabled:opacity-50"
+              className="px-3 py-1 text-sm font-bold border border-slate-200 bg-white rounded hover:bg-slate-100 disabled:opacity-50 transition-colors"
             >
               Siguiente
             </button>

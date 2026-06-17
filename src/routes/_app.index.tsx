@@ -48,7 +48,7 @@ function KpiCard({ label, value, icon: Icon, sub, color, bg }: KpiProps) {
           <Icon className={`h-7 w-7 ${color}`} />
         </div>
         <div className="min-w-0">
-          <p className="text-3xl font-black text-foreground tracking-tight drop-shadow-sm">{value}</p>
+          <p className="text-3xl font-extrabold text-foreground tracking-tight drop-shadow-sm">{value}</p>
           <p className="text-xs font-bold text-muted-foreground mt-0.5">{label}</p>
           {sub && <p className="text-[10px] text-muted-foreground/60 font-bold mt-1">{sub}</p>}
         </div>
@@ -194,12 +194,12 @@ function Dashboard() {
     .slice(0, 6);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-10">
       {/* Page title */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-white/50 p-6 rounded-2xl border border-slate-100 shadow-sm backdrop-blur-sm">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Tablero General</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Monitor de Purgas y Chequeo de Platos</p>
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-800">Tablero General</h1>
+          <p className="text-sm text-slate-500 mt-1 font-medium">Monitor de Purgas y Chequeo de Platos</p>
         </div>
       </div>
 
@@ -245,7 +245,7 @@ function Dashboard() {
         {/* Proximos Chequeos 24 HR */}
         <div>
           <Card className="h-full border-border shadow-sm flex flex-col">
-            <CardHeader className="py-4 px-5 border-b border-border/50 bg-muted/20">
+            <CardHeader className="pb-0 pt-5 px-5">
               <CardTitle className="text-sm font-semibold flex items-center gap-2 text-foreground">
                 <Clock className="h-4 w-4 text-sky-500" />
                 Próximos Chequeos 24h
@@ -289,7 +289,7 @@ function Dashboard() {
         {/* Proximos Chequeos 72h */}
         <div>
           <Card className="h-full border-border shadow-sm flex flex-col">
-            <CardHeader className="py-4 px-5 border-b border-border/50 bg-muted/20">
+            <CardHeader className="pb-0 pt-5 px-5">
               <CardTitle className="text-sm font-semibold flex items-center gap-2 text-foreground">
                 <Clock className="h-4 w-4 text-sky-500" />
                 Próximos Chequeos 72h
@@ -334,7 +334,7 @@ function Dashboard() {
         {/* Proximas Purgas */}
         <div>
           <Card className="h-full border-border shadow-sm flex flex-col">
-            <CardHeader className="py-4 px-5 border-b border-border/50 bg-muted/20">
+            <CardHeader className="pb-0 pt-5 px-5">
               <CardTitle className="text-sm font-semibold flex items-center gap-2 text-foreground">
                 <Droplets className="h-4 w-4 text-rose-500" />
                 Próximas Purgas
@@ -380,7 +380,7 @@ function Dashboard() {
       {/* Chart row */}
       <div className="grid gap-5 mt-5">
         <Card className="border-border shadow-sm hover:shadow-lg transition-all duration-300 group">
-          <CardHeader className="py-4 px-5 border-b border-border/50 bg-muted/20">
+          <CardHeader className="pb-0 pt-5 px-5">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2 cursor-pointer" onClick={() => setTipoGrafica(tipoGrafica === "marca" ? "mes" : "marca")}>
