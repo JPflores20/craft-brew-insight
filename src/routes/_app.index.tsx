@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { FlaskConical, Clock, CheckCircle2, TrendingUp, Droplets } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { FlaskConical, Clock, CheckCircle2, TrendingUp, Droplets, Database } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
 import { useOperacionesStore } from "@/store/useOperacionesStore";
@@ -41,15 +41,16 @@ interface KpiProps { label: string; value: number | string; icon: any; sub?: str
 
 function KpiCard({ label, value, icon: Icon, sub, color, bg }: KpiProps) {
   return (
-    <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
-      <CardContent className="flex items-center gap-4 p-5">
-        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${bg}`}>
-          <Icon className={`h-5 w-5 ${color}`} />
+    <Card className="border-border shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group">
+      <div className={`absolute top-0 right-0 w-32 h-32 opacity-20 rounded-full blur-3xl -mr-10 -mt-10 transition-all duration-500 group-hover:scale-150 ${bg}`} />
+      <CardContent className="flex items-center gap-4 p-6 relative z-10">
+        <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${bg} shadow-inner`}>
+          <Icon className={`h-7 w-7 ${color}`} />
         </div>
         <div className="min-w-0">
-          <p className="text-2xl font-bold text-foreground tracking-tight">{value}</p>
-          <p className="text-xs text-muted-foreground font-medium truncate">{label}</p>
-          {sub && <p className="text-[11px] text-muted-foreground/60 mt-0.5">{sub}</p>}
+          <p className="text-3xl font-black text-foreground tracking-tight drop-shadow-sm">{value}</p>
+          <p className="text-xs font-bold text-muted-foreground mt-0.5">{label}</p>
+          {sub && <p className="text-[10px] text-muted-foreground/60 font-bold mt-1">{sub}</p>}
         </div>
       </CardContent>
     </Card>
@@ -115,7 +116,7 @@ function Dashboard() {
   }, [extractosFiltrados]);
 
   const chartDataMarca = Object.entries(brandCounts)
-    .map(([marca, total]) => ({ name: marca, total }))
+    .map(([marca, total]) => ({ name: marca.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '), total }))
     .sort((a, b) => b.total - a.total);
 
   const chartDataMes = [...periodosStats].sort((a, b) => a.periodo.localeCompare(b.periodo)).map(p => {
@@ -130,23 +131,52 @@ function Dashboard() {
   const ahora = new Date();
   const turnoActual = obtenerTurnoPorHora(ahora.toISOString());
 
+  const getLimitesTurnoActual = (now: Date) => {
+    const start = new Date(now);
+    const end = new Date(now);
+    start.setSeconds(0); start.setMilliseconds(0);
+    end.setSeconds(59); end.setMilliseconds(999);
+    const h = now.getHours();
+    const m = now.getMinutes();
+    const mins = h * 60 + m;
+
+    if (mins >= 6 * 60 && mins < 15 * 60 + 30) {
+      start.setHours(6, 0);
+      end.setHours(15, 29);
+    } else if (mins >= 15 * 60 + 30 && mins < 23 * 60) {
+      start.setHours(15, 30);
+      end.setHours(22, 59);
+    } else {
+      if (h >= 23) {
+        start.setHours(23, 0);
+        end.setDate(end.getDate() + 1);
+        end.setHours(5, 59);
+      } else {
+        start.setDate(start.getDate() - 1);
+        start.setHours(23, 0);
+        end.setHours(5, 59);
+      }
+    }
+    return { start, end };
+  };
+
+  const { start: inicioTurno, end: finTurno } = getLimitesTurnoActual(ahora);
+
   const proximos72 = extractos
     .filter(e => e.h72 && e.estado72h !== "Completado")
     .map(e => ({ ...e, parsedH72: parseMexicanDate(e.h72) }))
-    .filter(e => e.parsedH72 && e.parsedH72 > ahora)
-    .filter(e => obtenerTurnoPorHora(e.parsedH72!.toISOString()) === turnoActual)
+    .filter(e => e.parsedH72 && e.parsedH72 >= inicioTurno && e.parsedH72 <= finTurno)
     .sort((a, b) => a.parsedH72!.getTime() - b.parsedH72!.getTime())
     .slice(0, 6);
 
    const proximos24 = extractos
     .filter(e => e.h24 && e.estado24h !== "Completado")
     .map(e => ({ ...e, parsedH24: parseMexicanDate(e.h24) }))
-    .filter(e => e.parsedH24 && e.parsedH24 > ahora)
-    .filter(e => obtenerTurnoPorHora(e.parsedH24!.toISOString()) === turnoActual)
+    .filter(e => e.parsedH24 && e.parsedH24 >= inicioTurno && e.parsedH24 <= finTurno)
     .sort((a, b) => a.parsedH24!.getTime() - b.parsedH24!.getTime())
     .slice(0, 6);
 
-  // Próximas Purgas 8 = fechaLlenado + 64 horas, solo las futuras y del turno actual
+  // Próximas Purgas 8 = fechaLlenado + 64 horas, solo del turno actual
   const proximasPurgas = extractos
     .filter(e => e.fechaLlenado)
     .map(e => {
@@ -158,9 +188,7 @@ function Dashboard() {
         fechaPurga8: parsedLlenado ? new Date(parsedLlenado.getTime() + 64 * 60 * 60 * 1000) : null,
       };
     })
-    .filter(e => e.fechaPurga8 && e.fechaPurga8 > ahora)
-    // @ts-ignore: Ya sabemos que fechaPurga8 no es null aquí
-    .filter(e => obtenerTurnoPorHora(e.fechaPurga8.toISOString()) === turnoActual)
+    .filter(e => e.fechaPurga8 && e.fechaPurga8 >= inicioTurno && e.fechaPurga8 <= finTurno)
     // @ts-ignore
     .sort((a, b) => a.fechaPurga8.getTime() - b.fechaPurga8.getTime())
     .slice(0, 6);
@@ -188,25 +216,25 @@ function Dashboard() {
             label="Tanques en Fermentación"
             value={fermentando}
             icon={FlaskConical}
-            sub="registros activos"
+            sub="Registros Activos"
             color="text-amber-600"
-            bg="bg-amber-50"
+            bg="bg-gradient-to-br from-amber-100 to-amber-50 border border-amber-200"
           />
           <KpiCard
             label="Chequeos 72h Pendientes"
             value={pendientes72}
             icon={Clock}
-            sub="por realizar"
+            sub="Por realizar"
             color="text-sky-600"
-            bg="bg-sky-50"
+            bg="bg-gradient-to-br from-sky-100 to-sky-50 border border-sky-200"
           />
           <KpiCard
             label="Chequeos 72h Completados"
             value={completados72}
             icon={CheckCircle2}
-            sub="confirmados"
+            sub="Confirmados"
             color="text-emerald-600"
-            bg="bg-emerald-50"
+            bg="bg-gradient-to-br from-emerald-100 to-emerald-50 border border-emerald-200"
           />
          
         </div>
@@ -231,22 +259,27 @@ function Dashboard() {
                   <p className="text-sm">Todo al día</p>
                 </div>
               ) : (
-                <div className="divide-y divide-border/50">
+                <div className="flex flex-col gap-1 p-2">
                   {proximos24.map((ext) => (
-                    <div key={ext.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
-                      <div>
-                        <p className="font-semibold text-sm text-foreground">Tanque {ext.tanque}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{ext.marca}</p>
+                    <Link to="/extracto" search={{ tanque: ext.tanque }} key={ext.id} className="group flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 border border-transparent hover:border-border/50 transition-all cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-sky-100 to-sky-50 border border-sky-100 flex items-center justify-center shrink-0 shadow-sm">
+                          <Database className="h-4 w-4 text-sky-600" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm text-foreground tracking-tight">Tanque {ext.tanque}</p>
+                          <p className="text-[11px] font-semibold text-muted-foreground mt-0.5 capitalize">{ext.marca}</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-sm text-sky-600">
+                      <div className="text-right flex flex-col items-end">
+                        <span className="px-2.5 py-1 bg-sky-100/80 text-sky-700 rounded-md font-bold text-xs shadow-sm border border-sky-200/50">
                           {format(ext.parsedH24!, "HH:mm")}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                        </span>
+                        <p className="text-[10px] text-muted-foreground/80 mt-1 font-bold">
                           {format(ext.parsedH24!, "d MMM", { locale: es })}
                         </p>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}
@@ -270,22 +303,27 @@ function Dashboard() {
                   <p className="text-sm">Todo al día</p>
                 </div>
               ) : (
-                <div className="divide-y divide-border/50">
+                <div className="flex flex-col gap-1 p-2">
                   {proximos72.map((ext) => (
-                    <div key={ext.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
-                      <div>
-                        <p className="font-semibold text-sm text-foreground">Tanque {ext.tanque}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{ext.marca}</p>
+                    <Link to="/extracto72" search={{ tanque: ext.tanque }} key={ext.id} className="group flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 border border-transparent hover:border-border/50 transition-all cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0 shadow-sm">
+                          <Database className="h-4 w-4 text-indigo-600" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm text-foreground tracking-tight">Tanque {ext.tanque}</p>
+                          <p className="text-[11px] font-semibold text-muted-foreground mt-0.5 capitalize">{ext.marca}</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-sm text-sky-600">
+                      <div className="text-right flex flex-col items-end">
+                        <span className="px-2.5 py-1 bg-indigo-100/80 text-indigo-700 rounded-md font-bold text-xs shadow-sm border border-indigo-200/50">
                           {format(ext.parsedH72!, "HH:mm")}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                        </span>
+                        <p className="text-[10px] text-muted-foreground/80 mt-1 font-bold">
                           {format(ext.parsedH72!, "d MMM", { locale: es })}
                         </p>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}
@@ -310,22 +348,27 @@ function Dashboard() {
                   <p className="text-sm">Sin purgas en este turno</p>
                 </div>
               ) : (
-                <div className="divide-y divide-border/50">
+                <div className="flex flex-col gap-1 p-2">
                   {proximasPurgas.map((p) => (
-                    <div key={p.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
-                      <div>
-                        <p className="font-semibold text-sm text-foreground">Tanque {p.tanque}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{p.marca}</p>
+                    <Link to="/purgas" search={{ tanque: p.tanque }} key={p.id} className="group flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 border border-transparent hover:border-border/50 transition-all cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-rose-100 to-rose-50 border border-rose-100 flex items-center justify-center shrink-0 shadow-sm">
+                          <Droplets className="h-4 w-4 text-rose-600" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm text-foreground tracking-tight">Tanque {p.tanque}</p>
+                          <p className="text-[11px] font-semibold text-muted-foreground mt-0.5 capitalize">{p.marca}</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-sm text-rose-600">
+                      <div className="text-right flex flex-col items-end">
+                        <span className="px-2.5 py-1 bg-rose-100/80 text-rose-700 rounded-md font-bold text-xs shadow-sm border border-rose-200/50">
                           {format(p.fechaPurga8!, "HH:mm")}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                        </span>
+                        <p className="text-[10px] text-muted-foreground/80 mt-1 font-bold">
                           {format(p.fechaPurga8!, "d MMM", { locale: es })}
                         </p>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}
@@ -336,17 +379,15 @@ function Dashboard() {
       
       {/* Chart row */}
       <div className="grid gap-5 mt-5">
-        <Card className="border-border shadow-sm">
-          <CardHeader className="pb-0 pt-5 px-5" >
-            <div className="flex items-start justify-between gap-3">
+        <Card className="border-border shadow-sm hover:shadow-lg transition-all duration-300 group">
+          <CardHeader className="py-4 px-5 border-b border-border/50 bg-muted/20">
+            <div className="flex items-center justify-between gap-3">
               <div>
                 <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2 cursor-pointer" onClick={() => setTipoGrafica(tipoGrafica === "marca" ? "mes" : "marca")}>
                   <TrendingUp className="h-4 w-4 text-primary" />
                   {tipoGrafica === "marca" ? "Distribución por Marca" : "Distribución por Meses"}
                 </CardTitle>
-                <p className="text-xs text-muted-foreground mt-0.5 cursor-pointer hover:underline" onClick={() => setTipoGrafica(tipoGrafica === "marca" ? "mes" : "marca")}>
-                  {tipoGrafica === "marca" ? "Clic aquí para ver por meses" : "Clic aquí para ver por marca"}
-                </p>
+                
               </div>
               {tipoGrafica === "marca" && (
                 <select
@@ -403,3 +444,11 @@ function Dashboard() {
     </div>
   );
 }
+
+
+
+
+
+
+
+

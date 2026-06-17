@@ -15,10 +15,6 @@ const getEventColorClass = (e: any, isDot = false) => {
   if (e.titulo && e.titulo.includes("Chequeo Plato 72h")) {
     return isDot ? "bg-violet-500" : "bg-violet-500/15 text-violet-700 dark:text-violet-400 border-l-2 border-violet-500";
   }
-  if (e.titulo && e.titulo.includes("Chequeo Plato")) {
-    return isDot ? "bg-blue-500" : "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-l-2 border-blue-500";
-  }
-  return isDot ? "bg-gray-500" : "bg-gray-500/15 text-gray-700 dark:text-gray-400 border-l-2 border-gray-500";
 };
 
 interface AgendaCalendarProps {
@@ -120,7 +116,7 @@ export function AgendaCalendar({ cursor, set_cursor, days, events }: AgendaCalen
         </div>
         <div className="mt-4 flex flex-wrap gap-4 text-xs">
           {[
-            { label: "Chequeo Plato", tipo: "Turno", titulo: "Chequeo Plato" },
+            { label: "Chequeo Plato 72h", tipo: "Turno", titulo: "Chequeo Plato 72h" },
             { label: "Purga de Trub", tipo: "Purga", titulo: "Purga" }
           ].map((item) => (
             <div key={item.label} className="flex items-center gap-2">

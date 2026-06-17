@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Search, ArrowDownAZ, ArrowUpZA } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +25,8 @@ import { useEffect } from "react";
 
 function PurgasPage() {
   const { purgas, fetchData, periodoActual, periodosDisponibles } = useOperacionesStore();
-  const [query, set_query] = useState("");
+  const searchParams: any = useSearch({ strict: false });
+  const [query, set_query] = useState(searchParams.tanque || "");
   const [marca, set_marca] = useState<string>("all");
   const [turno, set_turno] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
@@ -129,3 +130,4 @@ function PurgasPage() {
     </div>
   );
 }
+
